@@ -9,7 +9,12 @@ type Error struct {
 }
 
 func (e Error) Error() string {
-	return fmt.Sprintf("code=%n, msg=%s, detail=%v", e.Code, e.Msg, e.Detail)
+	if(e.Detail==nil){
+		return fmt.Sprintf("code=%n, msg=%s", e.Code, e.Msg)
+	}else {
+		return fmt.Sprintf("code=%n, msg=%s, detail=%v", e.Code, e.Msg, e.Detail)
+	}
+
 }
 
 func NewError(ecode uint, msg string, detail interface{}) (err Error) {
