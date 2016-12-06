@@ -178,7 +178,7 @@ func (server *Server) handleRequest(controllerName string, methodName string, r 
 		return nil, NewError(ERR_INVALID_PARAM, err.Error(), "")
 	}
 	req := &HttpRequest{r, body, bodyBytes}
-	log.Println("new request from",req.IP(),time.Now().String()[:19]," -----------------------------")
+	log.Println("new request from",req.IP(),time.Now().String()[:19])
 	if ok {
 		method := reflect.ValueOf(controller).MethodByName(methodName)
 

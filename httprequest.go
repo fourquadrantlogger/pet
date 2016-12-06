@@ -3,6 +3,7 @@ package pet
 import (
 	"net/http"
 	"strings"
+
 )
 
 type HttpRequest struct {
@@ -16,8 +17,9 @@ func (this *HttpRequest) IP() string {
 	if len(ips[0]) > 3 {
 		return ips[0]
 	} else {
-		addr := strings.Split(this.RemoteAddr, ":")
-		return addr[0]
+		addr := this.RemoteAddr[:strings.LastIndex(this.RemoteAddr,":")]
+
+		return addr
 	}
 }
 // GetQuery is like Query(), it returns the keyed url query value
