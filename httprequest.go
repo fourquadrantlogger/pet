@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"strconv"
 )
 
 type HttpRequest struct {
@@ -49,4 +50,28 @@ func (c *HttpRequest) GetQuery(key string) (string, bool) {
 func (c *HttpRequest) Query(key string) string {
 	value, _ := c.GetQuery(key)
 	return value
+}
+
+
+func (c *HttpRequest) GetQueryInt64(key string) int64 {
+	i, _ := strconv.ParseInt(c.Query(key), 10, 64)
+	return i
+}
+
+func (c *HttpRequest) GetQueryUint(key string) uint {
+	i, _ := strconv.ParseUint(c.Query(key), 10, 32)
+	return uint(i)
+}
+
+func (c *HttpRequest) GetQueryString(key string) string {
+	return c.Query(key)
+}
+
+func (c *HttpRequest) GetOffsetAndLimit() (uint, uint) {
+	page := c.GetQueryUint("page")
+	limit := c.GetQueryUint("limit")
+	if limit == 0 {
+		limit = 20
+	}
+	return page * limit, limit
 }
