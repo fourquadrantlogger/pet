@@ -5,9 +5,6 @@ import (
 )
 
 type Controller interface {
-	Init() (err error)
-	Decode(bytes []byte) (body map[string]interface{}, e error)
-	Encode(result map[string]interface{}) (ret []byte, e error)
 }
 
 func DefaultDecoder(bytes []byte) (map[string]interface{}, error) {
@@ -31,13 +28,7 @@ func JsonDecoder(bytes []byte) (body map[string]interface{}, e error) {
 }
 
 func DefaultEncoder(result map[string]interface{}) (ret []byte, e error) {
-	resBytes, err := json.Marshal(result)
-	if err != nil {
-		e = err
-		return
-	}
-	ret = []byte(resBytes)
-	return
+	return JsonEncoder(result)
 }
 func JsonEncoder(result map[string]interface{}) (ret []byte, e error) {
 	ret, e = json.Marshal(result)

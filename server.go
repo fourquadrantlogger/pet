@@ -23,19 +23,18 @@ func NewPet(conf *Config) (server *Server, err error) {
 		return nil, err
 	}
 	server = &Server{make(map[string]Controller), conf, make(map[string]func(http.ResponseWriter, *http.Request))}
-	server.AddController("default", &DefaultController{})
+	server.AddController("status", &StatusController{})
 	return server, nil
 }
 
-func (server *Server) AddController (name string, module Controller) (err error) {
-	log.Printf("add module %s ", name)
+func (server *Server) AddController (name string, controller Controller) (err error) {
+	log.Printf("add controller %s ", name)
 
 	if err != nil {
 		log.Print("failed")
 		return err
 	}
-	module.Init()
-	server.controllers[name] = module
+	server.controllers[name] = controller
 	return
 }
 
@@ -71,8 +70,10 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 
 	fields := strings.Split(r.URL.Path[1:], "/")
 	var body []byte
-
-	body, err = server.handleRequest(fields[0], fields[1], r, result)
+	C:=fields[0]
+	M:=fields[1]
+	M=strings.ToUpper(M[:1])+M[1:]
+	body, err = server.handleRequest(C,M,r,result)
 
 	server.processError(w, r, err, body, result)
 }
@@ -136,22 +137,22 @@ func (server *Server) writeBackErr(r *http.Request, w http.ResponseWriter, reqBo
 //根据不同模块encode
 func (server *Server) encode(r *http.Request, result map[string]interface{}) (ret []byte, e error) {
 	fields := strings.Split(r.URL.Path[1:], "/")
-	moduleName := fields[0]
+	controllerName := fields[0]
 	if len(fields) >= 3 {
-		moduleName = fields[1]
+		controllerName = fields[1]
 	}
 
-	module, ok := server.controllers[moduleName]
+	_, ok := server.controllers[controllerName]
 	if !ok {
-		l := fmt.Sprintf("invalid module name when write back,%s", moduleName)
+		l := fmt.Sprintf("invalid controller name when write back,%s", controllerName)
 		e = errors.New(l)
 		return
 	}
-	return module.Encode(result)
+	return DefaultEncoder(result)
 }
 
 //todo::过滤对内部方法（如Init，CheckLogin）的请求
-func (server *Server) handleRequest(moduleName string, methodName string, r *http.Request, result map[string]interface{}) ([]byte, error) {
+func (server *Server) handleRequest(controllerName string, methodName string, r *http.Request, result map[string]interface{}) ([]byte, error) {
 	if methodName == "Init" || methodName == "Decode" || methodName == "Encode" {
 		return nil, NewError(ERR_PATH, "非法的Controller方法:"+methodName, "")
 	}
@@ -161,17 +162,17 @@ func (server *Server) handleRequest(moduleName string, methodName string, r *htt
 	}
 
 	var values []reflect.Value
-	module, ok := server.controllers[moduleName]
+	controller, ok := server.controllers[controllerName]
 	if !ok {
-		return nil, NewError(ERR_INVALID_PARAM, "Invalid Module Name", "msg??")
+		return nil, NewError(ERR_INVALID_PARAM, "Invalid controller Name", "msg??")
 	}
-	body, err := module.Decode(bodyBytes)
+	body, err := DefaultDecoder(bodyBytes)
 	if err != nil {
 		return nil, NewError(ERR_INVALID_PARAM, err.Error(), "")
 	}
 
 	if ok {
-		method := reflect.ValueOf(module).MethodByName(methodName)
+		method := reflect.ValueOf(controller).MethodByName(methodName)
 
 		req := &HttpRequest{r, body, bodyBytes}
 
@@ -186,7 +187,7 @@ func (server *Server) handleRequest(moduleName string, methodName string, r *htt
 		values = method.Call([]reflect.Value{reflect.ValueOf(&HttpRequest{r, body, bodyBytes}), reflect.ValueOf(result)})
 	}
 	if len(values) != 1 {
-		return bodyBytes, NewError(ERR_INTERNAL, fmt.Sprintf("method %s.%s return value is not 2.", moduleName, methodName), "")
+		return bodyBytes, NewError(ERR_INTERNAL, fmt.Sprintf("method %s.%s return value is not 2.", controllerName, methodName), "")
 	}
 	switch x := values[0].Interface().(type) {
 	case nil:
