@@ -67,13 +67,20 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 	var result map[string]interface{} = make(map[string]interface{})
 	result["status"] = "error"
 	var err error
-
+	C,M:="",""
 	fields := strings.Split(r.URL.Path[1:], "/")
-	var body []byte
-	C:=fields[0]
-	M:=fields[1]
-	M=strings.ToUpper(M[:1])+M[1:]
+	if(len(fields)==2){
+		C=fields[0]
+		M=fields[1]
+		M=strings.ToUpper(M[:1])+M[1:]
+	}else {
+		C=fields[0]
+		M=r.Method
+	}
+
 	fmt.Println(C,M)
+	var body []byte
+
 	body, err = server.handleRequest(C,M,r,result)
 
 	server.processError(w, r, err, body, result)
