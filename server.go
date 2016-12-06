@@ -131,7 +131,10 @@ func (server *Server) writeBackErr(r *http.Request, w http.ResponseWriter, reqBo
 	fmt.Println("err", err)
 	result["code"] = err.Code
 	result["msg"] = err.Msg
-	result["detail"] = fmt.Sprint(err.Detail)
+	if(err.Detail!=nil){
+		result["detail"] = fmt.Sprint(err.Detail)
+	}
+
 	server.writeBack(r, w, reqBody, result, true)
 }
 
@@ -169,11 +172,12 @@ func (server *Server) handleRequest(controllerName string, methodName string, r 
 	if err != nil {
 		return nil, NewError(ERR_INVALID_PARAM, err.Error(), "")
 	}
-
+	req := &HttpRequest{r, body, bodyBytes}
+	log.Println("new request from",req.IP(),time.Now().String()[:19]," -----------------------------")
 	if ok {
 		method := reflect.ValueOf(controller).MethodByName(methodName)
 
-		req := &HttpRequest{r, body, bodyBytes}
+
 
 		if method.IsValid() {
 			values = method.Call([]reflect.Value{reflect.ValueOf(req), reflect.ValueOf(result)})
@@ -183,7 +187,7 @@ func (server *Server) handleRequest(controllerName string, methodName string, r 
 		}
 	} else {
 		method := reflect.ValueOf(server.controllers["default"]).MethodByName("ErrorController")
-		values = method.Call([]reflect.Value{reflect.ValueOf(&HttpRequest{r, body, bodyBytes}), reflect.ValueOf(result)})
+		values = method.Call([]reflect.Value{reflect.ValueOf(req), reflect.ValueOf(result)})
 	}
 	if len(values) != 1 {
 		return bodyBytes, NewError(ERR_INTERNAL, fmt.Sprintf("method %s.%s return value is not 2.", controllerName, methodName), "")
