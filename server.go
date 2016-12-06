@@ -77,8 +77,6 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 		C=fields[0]
 		M=r.Method
 	}
-
-	fmt.Println(C,M)
 	var body []byte
 
 	body, err = server.handleRequest(C,M,r,result)
