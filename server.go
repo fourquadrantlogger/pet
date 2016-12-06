@@ -23,7 +23,7 @@ func NewPet(conf *Config) (server *Server, err error) {
 		return nil, err
 	}
 	server = &Server{make(map[string]Controller), conf, make(map[string]func(http.ResponseWriter, *http.Request))}
-	server.AddController("status", &StatusController{})
+	server.AddController("default", &StatusController{})
 	return server, nil
 }
 
@@ -73,6 +73,7 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 	C:=fields[0]
 	M:=fields[1]
 	M=strings.ToUpper(M[:1])+M[1:]
+	fmt.Println(C,M)
 	body, err = server.handleRequest(C,M,r,result)
 
 	server.processError(w, r, err, body, result)
@@ -151,11 +152,9 @@ func (server *Server) encode(r *http.Request, result map[string]interface{}) (re
 	return DefaultEncoder(result)
 }
 
-//todo::过滤对内部方法（如Init，CheckLogin）的请求
+
 func (server *Server) handleRequest(controllerName string, methodName string, r *http.Request, result map[string]interface{}) ([]byte, error) {
-	if methodName == "Init" || methodName == "Decode" || methodName == "Encode" {
-		return nil, NewError(ERR_PATH, "非法的Controller方法:"+methodName, "")
-	}
+
 	bodyBytes, e := ioutil.ReadAll(r.Body)
 	if e != nil {
 		return nil, NewError(ERR_INTERNAL, "read http data error : "+e.Error(), "")
