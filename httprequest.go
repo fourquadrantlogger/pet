@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"strconv"
+	"qiniupkg.com/x/errors.v7"
+	"fmt"
 )
 
 type HttpRequest struct {
@@ -76,15 +78,17 @@ func (c *HttpRequest) GetOffsetAndLimit() (uint, uint) {
 	return page * limit, limit
 }
 func (c *HttpRequest)CheckJSONParam(params ...string)(error){
-	for k,v:=range c.JSONBody{
+	for _,p:=range params{
 		var k_exist=false
-		for _,p:=range params{
+		for k,_:=range c.JSONBody{
+
+			fmt.Println(k,p)
 			if(k==p){
 				k_exist=true
 			}
 		}
 		if(k_exist==false){
-			return NewError(ERR_REQUIRE_PARAM,"json缺少字段"+k,nil)
+			return errors.New("json缺少字段"+p)
 		}
 	}
 	return nil
