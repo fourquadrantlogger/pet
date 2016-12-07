@@ -10,6 +10,7 @@ const (
 	ERR_PATH           = 2000 //redis错误
 	ERR_INVALID_PARAM  = 2001 //请求参数错误
 	ERR_INVALID_FORMAT = 2002 //格式错误
+	ERR_REQUIRE_PARAM = 2003 //格式错误
 	ERR_JSON_STYLE     = 2011 //json格式错误
 	ERR_DATA           = 2012 //错误数据
 )
