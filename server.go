@@ -68,6 +68,8 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 	result["status"] = "error"
 	var err error
 	C, M := "", ""
+
+	///
 	fields := strings.Split(r.URL.Path[1:], "/")
 	if len(fields) == 2 {
 		C = fields[0]
@@ -77,13 +79,10 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 		C = fields[0]
 		M = r.Method
 	}
-	switch r.Method {
-	case http.MethodOptions:
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081, http://m.xpai.tv") //允许访问所有域
-		w.Header().Add("Access-Control-Allow-Headers", "Content-Type")                           //header的类型
-		w.Header().Set("content-type", "application/json")                                       //返回数据格式是json
-		return
-	}
+
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081, http://m.xpai.tv") //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")                           //header的类型
+	w.Header().Set("content-type", "application/json")                                       //返回数据格式是json
 
 	var body []byte
 	body, err = server.handleRequest(C, M, r, result)
@@ -109,8 +108,8 @@ func (server *Server) processError(w http.ResponseWriter, r *http.Request, err e
 	}
 }
 func (server *Server) writeBack(r *http.Request, w http.ResponseWriter, reqBody []byte, result map[string]interface{}, success bool) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	resBytes, err := server.encode(r, result)
+
 	if err != nil {
 		result["status"] = "fail"
 		result["code"] = ERR_INTERNAL
