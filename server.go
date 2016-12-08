@@ -80,9 +80,9 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 		M = r.Method
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081, http://m.xpai.tv") //允许访问所有域
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")                           //header的类型
-	w.Header().Set("content-type", "application/json")                                       //返回数据格式是json
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081 http://m.xpai.tv") //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")                          //header的类型
+	w.Header().Set("content-type", "application/json")                                      //返回数据格式是json
 
 	var body []byte
 	body, err = server.handleRequest(C, M, r, result)
