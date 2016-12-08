@@ -17,7 +17,7 @@ type Server struct {
 	otherHandleFunc map[string]func(http.ResponseWriter, *http.Request)
 }
 
-func NewPet(conf *Config, c map[string]string) (server *Server, err error) {
+func NewPet(conf *Config, c func(w http.ResponseWriter, r *http.Request)) (server *Server, err error) {
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func NewPet(conf *Config, c map[string]string) (server *Server, err error) {
 	return server, nil
 }
 
-var configresponsedeader map[string]string
+var configresponsedeader func(w http.ResponseWriter, r *http.Request)
 
 func (server *Server) AddController(name string, controller Controller) (err error) {
 	log.Printf("add controller %s ", name)
@@ -82,9 +82,7 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 		M = r.Method
 	}
 
-	for k, v := range configresponsedeader {
-		w.Header().Set(k, v) //允许访问所有域
-	}
+	configresponsedeader(w, r)
 
 	var body []byte
 	body, err = server.handleRequest(C, M, r, result)
