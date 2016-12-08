@@ -17,15 +17,17 @@ type Server struct {
 	otherHandleFunc map[string]func(http.ResponseWriter, *http.Request)
 }
 
-func NewPet(conf *Config) (server *Server, err error) {
-
+func NewPet(conf *Config, c map[string]string) (server *Server, err error) {
 	if err != nil {
 		return nil, err
 	}
 	server = &Server{make(map[string]Controller), conf, make(map[string]func(http.ResponseWriter, *http.Request))}
 	server.AddController("default", &StatusController{})
+	configresponsedeader = c
 	return server, nil
 }
+
+var configresponsedeader map[string]string
 
 func (server *Server) AddController(name string, controller Controller) (err error) {
 	log.Printf("add controller %s ", name)
@@ -80,9 +82,9 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 		M = r.Method
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081 http://m.xpai.tv") //允许访问所有域
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")                          //header的类型
-	w.Header().Set("content-type", "application/json")                                      //返回数据格式是json
+	for k, v := range configresponsedeader {
+		w.Header().Set(k, v) //允许访问所有域
+	}
 
 	var body []byte
 	body, err = server.handleRequest(C, M, r, result)
