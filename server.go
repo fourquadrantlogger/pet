@@ -27,7 +27,7 @@ func NewPet(conf *Config) (server *Server, err error) {
 	return server, nil
 }
 
-func (server *Server) AddController (name string, controller Controller) (err error) {
+func (server *Server) AddController(name string, controller Controller) (err error) {
 	log.Printf("add controller %s ", name)
 
 	if err != nil {
@@ -67,20 +67,26 @@ func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 	var result map[string]interface{} = make(map[string]interface{})
 	result["status"] = "error"
 	var err error
-	C,M:="",""
+	C, M := "", ""
 	fields := strings.Split(r.URL.Path[1:], "/")
-	if(len(fields)==2){
-		C=fields[0]
-		M=fields[1]
-		M=strings.ToUpper(M[:1])+M[1:]
-	}else {
-		C=fields[0]
-		M=r.Method
+	if len(fields) == 2 {
+		C = fields[0]
+		M = fields[1]
+		M = strings.ToUpper(M[:1]) + M[1:]
+	} else {
+		C = fields[0]
+		M = r.Method
 	}
+	switch r.Method {
+	case http.MethodOptions:
+		w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+		w.Header().Set("content-type", "application/json")             //返回数据格式是json
+		return
+	}
+
 	var body []byte
-
-	body, err = server.handleRequest(C,M,r,result)
-
+	body, err = server.handleRequest(C, M, r, result)
 	server.processError(w, r, err, body, result)
 }
 func (server *Server) processError(w http.ResponseWriter, r *http.Request, err error, reqBody []byte, result map[string]interface{}) {
@@ -136,7 +142,7 @@ func (server *Server) writeBackErr(r *http.Request, w http.ResponseWriter, reqBo
 	fmt.Println("err", err)
 	result["code"] = err.Code
 	result["msg"] = err.Msg
-	if(err.Detail!=nil){
+	if err.Detail != nil {
 		result["detail"] = fmt.Sprint(err.Detail)
 	}
 
@@ -160,7 +166,6 @@ func (server *Server) encode(r *http.Request, result map[string]interface{}) (re
 	return DefaultEncoder(result)
 }
 
-
 func (server *Server) handleRequest(controllerName string, methodName string, r *http.Request, result map[string]interface{}) ([]byte, error) {
 
 	bodyBytes, e := ioutil.ReadAll(r.Body)
@@ -178,11 +183,9 @@ func (server *Server) handleRequest(controllerName string, methodName string, r 
 		return nil, NewError(ERR_INVALID_PARAM, err.Error(), "")
 	}
 	req := &HttpRequest{r, body, bodyBytes}
-	log.Println("new request from",req.IP(),time.Now().String()[:19])
+	log.Println("new request from", req.IP(), time.Now().String()[:19])
 	if ok {
 		method := reflect.ValueOf(controller).MethodByName(methodName)
-
-
 
 		if method.IsValid() {
 			values = method.Call([]reflect.Value{reflect.ValueOf(req), reflect.ValueOf(result)})
