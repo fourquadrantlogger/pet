@@ -66,6 +66,8 @@ func (server *Server) StartService() error {
 	return s.ListenAndServe()
 }
 func (server *Server) allHandler(w http.ResponseWriter, r *http.Request) {
+	//Go 解决"Connection reset by peer"或"EOF"问题
+	r.Close = true
 	var result map[string]interface{} = make(map[string]interface{})
 	result["status"] = "error"
 	var err error
