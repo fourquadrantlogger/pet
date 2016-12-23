@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"strconv"
-	"qiniupkg.com/x/errors.v7"
 	"fmt"
+	"errors"
 )
 
 type HttpRequest struct {
